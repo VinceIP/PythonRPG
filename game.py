@@ -4,10 +4,10 @@ from game_handler import GameHandler
 
 
 def main():
-    game_handler = GameHandler()
-    event_handler = EventHandler()
-    handlers = [game_handler, event_handler]
-    engine = Engine(handlers)
+    engine = Engine()
+    game_handler = GameHandler(engine)
+    event_handler = EventHandler(engine)
+    #input_handler = InputHandler(engine)
     engine.render()
 
 

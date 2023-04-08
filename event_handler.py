@@ -13,6 +13,9 @@ if TYPE_CHECKING:
 class EventHandler(Handler, tcod.event.EventDispatch[Action]):
     """Listens for and handles all events"""
 
+    def __init__(self, engine: Engine):
+        engine.event_handler = self
+
     def wait_for_event(self, engine: Engine):
         """Waits for an event to occur"""
         for event in tcod.event.wait():

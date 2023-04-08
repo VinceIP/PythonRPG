@@ -1,35 +1,32 @@
 from __future__ import annotations
 
-import typing
-
+from typing import Optional
 import tcod
-from typing import TYPE_CHECKING
 
-import game_handler
-from handler import Handler
 from event_handler import EventHandler
 from game_handler import GameHandler
+from handler import Handler
 from input_handler import InputHandler
 
 
 class Engine:
-    def __init__(self, handlers: typing.List, width=80, height=50):
+    def __init__(self, width=80, height=50):
         self.screen_width = width
         self.screen_height = height
+        self.screen_center = (
+            int((width / 2)),
+            int((height / 2))
+        )
         self.fps = 60
         self.console = tcod.Console(width, height, order="F")
         self.tileset = tcod.tileset.load_tilesheet(
             "resources/dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD,
         )
-        # Get handler refs
-        for h in handlers:
-            if isinstance(h, Handler):
-                if isinstance(h, EventHandler):
-                    self.event_handler = h
-                elif isinstance(h, GameHandler):
-                    self.game_handler = h
-                elif isinstance(h, InputHandler):
-                    self.input_handler = h
+
+        # These get set by their respective handlers on their creation
+        self.game_handler: Optional[GameHandler] = None
+        self.event_handler: Optional[EventHandler] = None
+        # self.input_handler: InputHandler
 
     def render(self):
         with tcod.context.new(

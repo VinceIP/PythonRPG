@@ -7,3 +7,7 @@ class Player(Entity):
         self.x = 15
         self.y = 15
         self.char = "@"
+
+    def move(self, dx: int, dy: int):
+        self.x += dx
+        self.y += dy

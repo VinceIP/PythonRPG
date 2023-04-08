@@ -5,6 +5,7 @@ import typing
 import tcod
 from typing import TYPE_CHECKING
 
+import game_handler
 from handler import Handler
 from event_handler import EventHandler
 from game_handler import GameHandler
@@ -15,7 +16,7 @@ class Engine:
     def __init__(self, handlers: typing.List, width=80, height=50):
         self.screen_width = width
         self.screen_height = height
-        self.fps = 20
+        self.fps = 60
         self.console = tcod.Console(width, height, order="F")
         self.tileset = tcod.tileset.load_tilesheet(
             "resources/dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD,
@@ -40,6 +41,7 @@ class Engine:
         ) as self.context:
             while True:
                 self.console.clear()
-                self.console.print(x=10, y=10, string="@")
+                self.console.print(self.game_handler.player.x, self.game_handler.player.y,
+                                   self.game_handler.player.char)
                 self.context.present(self.console)
                 self.event_handler.wait_for_event(self)

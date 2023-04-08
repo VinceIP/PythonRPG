@@ -20,7 +20,7 @@ class Engine:
         self.fps = 60
         self.console = tcod.Console(width, height, order="F")
         self.tileset = tcod.tileset.load_tilesheet(
-            "resources/dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD,
+            "resources/Taffer_10x10.png", 16, 16, tcod.tileset.CHARMAP_CP437,
         )
 
         # These get set by their respective handlers on their creation
@@ -45,12 +45,20 @@ class Engine:
                 self.event_handler.wait_for_event(self)
 
     def render_map(self):
-        for tile in self.active_map.tiles:
-            self.console.print(x=tile.x, y=tile.y,
-                               string=tile.char,
-                               fg=tile.color_fg,
-                               bg=tile.color_bg
-                               )
+        # for tile in self.active_map.tiles:
+        #     self.console.print(x=tile.x, y=tile.y,
+        #                        string=tile.char,
+        #                        fg=tile.color_fg,
+        #                        bg=tile.color_bg
+        #                        )
+
+        for x, row in enumerate(self.active_map.tiles):
+            for y, tile in enumerate(row):
+                self.console.print(x=x, y=y,
+                                   string=tile.char,
+                                   fg=tile.color_fg,
+                                   bg=tile.color_bg)
+
         for entity in self.active_map.entities:
             self.console.print(x=entity.x, y=entity.y,
                                string=entity.char,

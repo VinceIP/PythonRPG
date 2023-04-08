@@ -1,8 +1,10 @@
-from typing import Tuple
+from __future__ import annotations
+from typing import Tuple, TYPE_CHECKING
 
 import numpy
 
-from entity import Entity
+if TYPE_CHECKING:
+    from entity import Entity
 
 # A tile graphic
 graphic_dt = numpy.dtype(

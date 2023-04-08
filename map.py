@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from random import randint
+from random import randint, randrange
 from typing import Optional, TYPE_CHECKING, List
 
 from tiles import Tile
@@ -22,10 +22,10 @@ class Map:
         self.entities: Optional[List[Entity]] = []
         """Contains all entities on a given map"""
 
-        self.tiles: Optional[List[Tile]] = []
-        for x in range(self.width):
-            for y in range(self.height):
-                self.tiles.append(
-                    Tile(x=x, y=y, color_fg=(0, 0, 0), color_bg=(randint(20, 50), randint(20, 40), 20),
-                         )
-                )
+        self.tiles: List[List[Tile]] = [
+            [Tile(char=chr(randrange(0x2591, 0x2593)), x=x, y=y,
+                  color_fg=(randint(50, 150), randint(20, 60), 20),
+                  color_bg=(randint(20, 50), randint(10, 15), randint(20, 40)),
+                  ) for y in range(self.height)]
+            for x in range(self.width)
+            ]

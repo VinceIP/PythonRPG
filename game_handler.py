@@ -16,18 +16,23 @@ class GameHandler(Handler):
     def __init__(self, engine: Engine):
         engine.game_handler = self
 
-        self.player = Player(char="%", color=(255, 0, 0), coordinates=engine.screen_center)
         self.map = Map(engine)
+        self.player = Player(char="%", color=(255, 0, 0), coordinates=engine.screen_center, game_map=self.map)
+
         self.map.entities.append(
-            Entity(x=self.player.x - 5, y=self.player.y - 5,
+            Entity(x=0, y=0,
                    char="#",
-                   color=(0, 255, 0)
+                   color=(0, 255, 0),
+                   game_map=self.map,
+                   solid=True
                    )
         )
         self.map.entities.append(
             Entity(x=self.player.x + 15, y=self.player.y + 5,
                    char="#",
-                   color=(0, 255, 255)
+                   color=(0, 255, 255),
+                   game_map=self.map,
+                   solid=True
                    )
         )
         self.map.entities.append(self.player)

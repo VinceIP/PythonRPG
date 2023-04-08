@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from random import randint
 from typing import Optional, TYPE_CHECKING, List
 
 from tiles import Tile
@@ -25,5 +26,6 @@ class Map:
         for x in range(self.width):
             for y in range(self.height):
                 self.tiles.append(
-                    Tile(x=x, y=y, color_fg=(0, 0, 0), color_bg=(0, 10, 20)),
+                    Tile(x=x, y=y, color_fg=(0, 0, 0), color_bg=(randint(20, 50), randint(20, 40), 20),
+                         )
                 )

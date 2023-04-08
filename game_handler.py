@@ -23,6 +23,11 @@ class GameHandler(Handler):
                    char="#",
                    color=(0, 255, 0)
                    )
-
+        )
+        self.map.entities.append(
+            Entity(x=self.player.x + 15, y=self.player.y + 5,
+                   char="#",
+                   color=(0, 255, 255)
+                   )
         )
         self.map.entities.append(self.player)

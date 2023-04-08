@@ -8,7 +8,7 @@ def main():
     game_handler = GameHandler(engine)
     event_handler = EventHandler(engine)
     #input_handler = InputHandler(engine)
-    engine.render()
+    engine.render_game()
 
 
 if __name__ == "__main__":

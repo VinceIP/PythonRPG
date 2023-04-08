@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from typing import Optional
+
 import tcod
 
 from event_handler import EventHandler
 from game_handler import GameHandler
-from handler import Handler
-from input_handler import InputHandler
 from map import Map
 
 
@@ -31,7 +30,7 @@ class Engine:
 
         self.active_map: Optional[Map] = None
 
-    def render(self):
+    def render_game(self):
         with tcod.context.new(
                 columns=self.console.width,
                 rows=self.console.height,
@@ -41,10 +40,19 @@ class Engine:
         ) as self.context:
             while True:
                 self.console.clear()
-                # Print each entity on the map
-                for entity in self.active_map.entities:
-                    self.console.print(x=entity.x, y=entity.y,
-                                       string=entity.char,
-                                       fg=entity.color)
+                self.render_map()
                 self.context.present(self.console)
                 self.event_handler.wait_for_event(self)
+
+    def render_map(self):
+        for tile in self.active_map.tiles:
+            self.console.print(x=tile.x, y=tile.y,
+                               string=tile.char,
+                               fg=tile.color_fg,
+                               bg=tile.color_bg
+                               )
+        for entity in self.active_map.entities:
+            self.console.print(x=entity.x, y=entity.y,
+                               string=entity.char,
+                               fg=entity.color,
+                               )

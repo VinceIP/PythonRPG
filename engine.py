@@ -7,6 +7,7 @@ from event_handler import EventHandler
 from game_handler import GameHandler
 from handler import Handler
 from input_handler import InputHandler
+from map import Map
 
 
 class Engine:
@@ -28,6 +29,8 @@ class Engine:
         self.event_handler: Optional[EventHandler] = None
         # self.input_handler: InputHandler
 
+        self.active_map: Optional[Map] = None
+
     def render(self):
         with tcod.context.new(
                 columns=self.console.width,
@@ -38,7 +41,10 @@ class Engine:
         ) as self.context:
             while True:
                 self.console.clear()
-                self.console.print(self.game_handler.player.x, self.game_handler.player.y,
-                                   self.game_handler.player.char)
+                # Print each entity on the map
+                for entity in self.active_map.entities:
+                    self.console.print(x=entity.x, y=entity.y,
+                                       string=entity.char,
+                                       fg=entity.color)
                 self.context.present(self.console)
                 self.event_handler.wait_for_event(self)

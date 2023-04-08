@@ -1,14 +1,18 @@
 from __future__ import annotations
 
+import typing
+
 import tcod
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from event_handler import EventHandler
+from handler import Handler
+from event_handler import EventHandler
+from game_handler import GameHandler
+from input_handler import InputHandler
 
 
 class Engine:
-    def __init__(self, event_handler: EventHandler, width=80, height=50):
+    def __init__(self, handlers: typing.List, width=80, height=50):
         self.screen_width = width
         self.screen_height = height
         self.fps = 20
@@ -16,14 +20,26 @@ class Engine:
         self.tileset = tcod.tileset.load_tilesheet(
             "resources/dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD,
         )
-        self.event_handler = event_handler
+        # Get handler refs
+        for h in handlers:
+            if isinstance(h, Handler):
+                if isinstance(h, EventHandler):
+                    self.event_handler = h
+                elif isinstance(h, GameHandler):
+                    self.game_handler = h
+                elif isinstance(h, InputHandler):
+                    self.input_handler = h
 
     def render(self):
         with tcod.context.new(
-                columns=self.console.width, rows=self.console.height, tileset=self.tileset,
+                columns=self.console.width,
+                rows=self.console.height,
+                tileset=self.tileset,
+                vsync=True,
+                title="Python RPG"
         ) as self.context:
             while True:
                 self.console.clear()
-                self.console.print(x=10, y=10, string="Hello world!")
+                self.console.print(x=10, y=10, string="@")
                 self.context.present(self.console)
                 self.event_handler.wait_for_event(self)

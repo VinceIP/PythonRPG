@@ -1,4 +1,4 @@
-from map import Map
+from game_map import Map
 
 
 class Entity:

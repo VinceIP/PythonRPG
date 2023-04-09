@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from entity import Entity
 from handler import Handler
-from map import Map
+from game_map import Map
 from player import Player
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ class GameHandler(Handler):
 
     def __init__(self, engine: Engine):
         engine.game_handler = self
-
+        # Right now, all the tiles and entities and map creation is happening here
         self.map = Map(engine)
         self.player = Player(char="%", color=(255, 0, 0), coordinates=engine.screen_center, game_map=self.map)
 

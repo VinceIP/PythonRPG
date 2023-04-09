@@ -6,7 +6,7 @@ import tcod
 
 from event_handler import EventHandler
 from game_handler import GameHandler
-from map import Map
+from game_map import Map
 
 
 class Engine:

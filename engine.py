@@ -62,7 +62,7 @@ class Engine:
         for row in self.active_map.tiles:
             for tile in row:
                 self.console.print(x=tile.x, y=tile.y,
-                                   string=chr(tile.char),
+                                   string=tile.char,
                                    fg=tile.color_fg,
                                    bg=tile.color_bg, )
 

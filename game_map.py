@@ -4,7 +4,7 @@ from random import randrange, randint
 from typing import Optional, TYPE_CHECKING, List
 
 import numpy as np
-import tcod.console
+import pyrexpaint
 
 from tiles import Tile, TileType
 
@@ -57,47 +57,86 @@ class Map:
     def create_map_from_xp(self):
         path = "resources/maps/"
         file = "mockup.xp"
-        console = self.load_map_from_xp(path + file)
-        self.tiles = self.create_map_from_console(console)
+        image_layers = self.load_map_from_xp(path + file)
+        self.tile_layers = np.zeros(len(image_layers), dtype=pyrexpaint.ImageLayer, order="F")
+
+        for layer in image_layers:
+            np.append(image_layers,
+                      self.create_tile_layer_from_xp_layer(layer)
+                      )
 
     @staticmethod
-    def load_map_from_xp(absolute_path: str) -> tcod.Console:
+    def load_map_from_xp(absolute_path: str):
+        # tcod's load_xp feature only allows one layer??
+        # old:
+        # console, = tcod.console.load_xp(absolute_path, order="F")
+        # CP437_TO_UNICODE = np.asarray(tcod.tileset.CHARMAP_CP437)
+        # console.ch[:] = CP437_TO_UNICODE[console.ch]
+        #
+        # KEY_COLOR = (255, 0, 255)
+        # is_transparent = (console.rgb["bg"] == KEY_COLOR).all(axis=-1)
+        # console.rgba[is_transparent] = (ord(" "), (0,), (0,))
+        # return console
 
-        console, = tcod.console.load_xp(absolute_path, order="F")
-        CP437_TO_UNICODE = np.asarray(tcod.tileset.CHARMAP_CP437)
-        console.ch[:] = CP437_TO_UNICODE[console.ch]
+        # new
+        image_layers = pyrexpaint.load(absolute_path)
+        return image_layers
 
-        KEY_COLOR = (255, 0, 255)
-        is_transparent = (console.rgb["bg"] == KEY_COLOR).all(axis=-1)
-        console.rgba[is_transparent] = (ord(" "), (0,), (0,))
-        return console
-
-    def create_map_from_console(self, console: tcod.Console):
+    def create_tile_layer_from_xp_layer(self, image_layer: pyrexpaint.ImageLayer):
         # Return DEC CODE POINT - or a char code
-        print(console.rgb[1, 1][0])
-        get_chr = 0
-        # FG color
-        print(console.rgb[1, 1][1])
-        get_fg = 1
-        # BG Color
-        print(console.rgb[1, 1][2])
-        get_bg = 2
+        # print(console.rgb[1, 1][0])
+        # get_chr = 0
+        # # FG color
+        # print(console.rgb[1, 1][1])
+        # get_fg = 1
+        # # BG Color
+        # print(console.rgb[1, 1][2])
+        # get_bg = 2
+        #
+        # width = console.rgb.shape[0]
+        # height = console.rgb.shape[1]
+        # tiles = np.zeros((width, height), dtype=Tile, order="F")
+        #
+        # for x in range(width):
+        #     for y in range(height):
+        #         fg_color = tuple(console.rgb[x, y][get_fg])
+        #         bg_color = tuple(console.rgb[x, y][get_bg])
+        #         chr = console.rgb[x, y][get_chr]
+        #         if chr == 0:
+        #             chr = 32
+        #         tiles[x, y] = Tile(
+        #             x=x, y=y,
+        #             color_fg=fg_color, color_bg=bg_color,
+        #             char=chr,
+        #             tile_type=TileType.floor
+        #         )
+        # return tiles
 
-        width = console.rgb.shape[0]
-        height = console.rgb.shape[1]
+        # Init tiles
+        # W/H based on base image layer
+        width = image_layer.width
+        height = image_layer.height
         tiles = np.zeros((width, height), dtype=Tile, order="F")
 
-        for x in range(width):
-            for y in range(height):
-                fg_color = tuple(console.rgb[x, y][get_fg])
-                bg_color = tuple(console.rgb[x, y][get_bg])
-                chr = console.rgb[x, y][get_chr]
-                if chr == 0:
-                    chr = 32
-                tiles[x, y] = Tile(
-                    x=x, y=y,
-                    color_fg=fg_color, color_bg=bg_color,
-                    char=chr,
+        # Lambda function to split layers into x and y
+        pos = lambda x, y: x + y * height
+        for i in range(width):
+            for j in range(height):
+                t = image_layer.tiles[pos(j, i)]
+
+                # Get first char from 4 byte string
+                char = image_layer.tiles[pos(j, i)].ascii_code.decode(encoding="cp437")[0]
+                if char == "\x00" or ord(char) == 0:
+                    char = chr(32)
+
+                color_fg = tuple(
+                    [t.fg_r, t.fg_g, t.fg_b]
+                )
+                color_bg = tuple(
+                    [t.bg_r, t.bg_g, t.bg_b]
+                )
+                tiles[i, j] = Tile(
+                    x=i, y=j, char=char, color_fg=color_fg, color_bg=color_bg,
                     tile_type=TileType.floor
                 )
         return tiles

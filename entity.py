@@ -19,4 +19,4 @@ class Entity:
         self.color = color
         self.solid = solid
 
-        self.map.tiles[self.x][self.y].entity = self
+       # self.map.tiles[self.x][self.y].entity = self

@@ -29,6 +29,7 @@ class Map:
 
         def make_test_map():
             # Generating some random background tiles for testing
+            # No longer works
             self.tiles: List[List[Tile]] = [
                 [Tile(char=chr(randrange(0x2591, 0x2593)), x=x, y=y,
                       color_fg=(randint(50, 150), randint(20, 60), 20),
@@ -91,6 +92,8 @@ class Map:
                 fg_color = tuple(console.rgb[x, y][get_fg])
                 bg_color = tuple(console.rgb[x, y][get_bg])
                 chr = console.rgb[x, y][get_chr]
+                if chr == 0:
+                    chr = 32
                 tiles[x, y] = Tile(
                     x=x, y=y,
                     color_fg=fg_color, color_bg=bg_color,

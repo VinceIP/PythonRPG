@@ -10,7 +10,7 @@ from game_map import Map
 
 
 class Engine:
-    def __init__(self, width=80, height=50):
+    def __init__(self, width=60, height=60):
         self.screen_width = width
         self.screen_height = height
         self.screen_center = (

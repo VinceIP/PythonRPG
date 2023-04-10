@@ -3,6 +3,9 @@ from __future__ import annotations
 from random import randrange, randint
 from typing import Optional, TYPE_CHECKING, List
 
+import numpy as np
+import tcod.console
+
 from tiles import Tile, TileType
 
 if TYPE_CHECKING:
@@ -22,26 +25,17 @@ class Map:
         self.entities: Optional[List[Entity]] = []
         """Contains all entities on a given map"""
 
-        # Generating some random background tiles for testing
-        self.tiles: List[List[Tile]] = [
-            [Tile(char=chr(randrange(0x2591, 0x2593)), x=x, y=y,
-                  color_fg=(randint(50, 150), randint(20, 60), 20),
-                  color_bg=(randint(20, 50), randint(10, 15), randint(20, 40)),
-                  ) for y in range(self.height)]
-            for x in range(self.width)
-        ]
+        self.create_map_from_xp()
 
-        # # Define a numpy array of tiles with same shape as map
-        # self.tiles = np.full(
-        #     shape=(self.width, self.height),
-        #     fill_value=0
-        # )
-        # for x in range(0, self.tiles.shape[0]):
-        #     for y in range(0, self.tiles.shape[1]):
-        #         self.tiles[x, y] = Tile(char=chr(randrange(0x2591, 0x2593)), x=x, y=y,
-        #                                 color_fg=(randint(50, 150), randint(20, 60), 20),
-        #                                 color_bg=(randint(20, 50), randint(10, 15), randint(20, 40))
-        #                                 )
+        def make_test_map():
+            # Generating some random background tiles for testing
+            self.tiles: List[List[Tile]] = [
+                [Tile(char=chr(randrange(0x2591, 0x2593)), x=x, y=y,
+                      color_fg=(randint(50, 150), randint(20, 60), 20),
+                      color_bg=(randint(20, 50), randint(10, 15), randint(20, 40)),
+                      ) for y in range(self.height)]
+                for x in range(self.width)
+            ]
 
     def is_in_bounds(self, x: int, y: int):
         """Return true if the target coordinates are in bounds of the map"""
@@ -58,3 +52,49 @@ class Map:
             return True
         else:
             return False
+
+    def create_map_from_xp(self):
+        path = "resources/maps/"
+        file = "mockup.xp"
+        console = self.load_map_from_xp(path + file)
+        self.tiles = self.create_map_from_console(console)
+
+    @staticmethod
+    def load_map_from_xp(absolute_path: str) -> tcod.Console:
+
+        console, = tcod.console.load_xp(absolute_path, order="F")
+        CP437_TO_UNICODE = np.asarray(tcod.tileset.CHARMAP_CP437)
+        console.ch[:] = CP437_TO_UNICODE[console.ch]
+
+        KEY_COLOR = (255, 0, 255)
+        is_transparent = (console.rgb["bg"] == KEY_COLOR).all(axis=-1)
+        console.rgba[is_transparent] = (ord(" "), (0,), (0,))
+        return console
+
+    def create_map_from_console(self, console: tcod.Console):
+        # Return DEC CODE POINT - or a char code
+        print(console.rgb[1, 1][0])
+        get_chr = 0
+        # FG color
+        print(console.rgb[1, 1][1])
+        get_fg = 1
+        # BG Color
+        print(console.rgb[1, 1][2])
+        get_bg = 2
+
+        width = console.rgb.shape[0]
+        height = console.rgb.shape[1]
+        tiles = np.zeros((width, height), dtype=Tile, order="F")
+
+        for x in range(width):
+            for y in range(height):
+                fg_color = tuple(console.rgb[x, y][get_fg])
+                bg_color = tuple(console.rgb[x, y][get_bg])
+                chr = console.rgb[x, y][get_chr]
+                tiles[x, y] = Tile(
+                    x=x, y=y,
+                    color_fg=fg_color, color_bg=bg_color,
+                    char=chr,
+                    tile_type=TileType.floor
+                )
+        return tiles

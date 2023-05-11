@@ -22,12 +22,10 @@ class Engine:
         self.tileset = tcod.tileset.load_tilesheet(
             "resources/fonts/cp437_10x10.png", 16, 16, tcod.tileset.CHARMAP_CP437,
         )
-
         # These get set by their respective handlers on their creation
         self.game_handler: Optional[GameHandler] = None
         self.event_handler: Optional[EventHandler] = None
         # self.input_handler: InputHandler
-
         self.active_map: Optional[Map] = None
 
     def render_game(self):
@@ -58,14 +56,20 @@ class Engine:
         #                            string=tile.char,
         #                            fg=tile.color_fg,
         #                            bg=tile.color_bg)
-
-        for row in self.active_map.tiles:
-            for tile in row:
-                self.console.print(x=tile.x, y=tile.y,
-                                   string=tile.char,
-                                   fg=tile.color_fg,
-                                   bg=tile.color_bg, )
-
+        map = self.active_map
+        tile_layers = self.active_map.tile_layers
+        # Skip drawing any tile with this background color (transparent)
+        transparent_color = (255, 0, 255)
+        # print(tile_layers[0].data[1, 1].char)
+        for layer in range(len(tile_layers)):
+            for i in range(len(tile_layers[layer].data)):
+                for j in range(len(tile_layers[layer].data)):
+                    tile = tile_layers[layer].data[i, j]
+                    if tile.color_bg != transparent_color:
+                        self.console.print(
+                            x=tile.x, y=tile.y, string=tile.char,
+                            fg=tile.color_fg, bg=tile.color_bg
+                        )
         for entity in self.active_map.entities:
             self.console.print(x=entity.x, y=entity.y,
                                string=entity.char,

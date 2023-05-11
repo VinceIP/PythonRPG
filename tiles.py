@@ -1,56 +1,73 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple
+
+import numpy as np
 
 if TYPE_CHECKING:
     from entity import Entity
 
-# Tile should probably go back to being a generic numpy dtype and not tons of object instances??
-
-
-# A tile graphic
-# graphic_dt = numpy.dtype(
+# # Tile graphics structured type compatible with Console.tiles_rgb.
+# graphic_dt = np.dtype(
 #     [
-#         ("ch", numpy.int32),  # Unicode codepoint
-#         ("fg", "3B"),  # 3 unsigned bytes for RGB colors
+#         ("ch", np.int32),  # Unicode codepoint.
+#         ("fg", "3B"),  # 3 unsigned bytes, for RGB colors.
 #         ("bg", "3B"),
 #     ]
 # )
 #
-# # A tile
-# tile_dt = numpy.dtype(
+# # Tile struct used for statically defined tile data.
+# tile_dt = np.dtype(
 #     [
-#         ("walkable", bool),
-#         ("transparent", bool),  # See through FOV
-#         ("dark", graphic_dt)  # Alt graphic for when hidden by FOV
+#         ("walkable", np.bool),  # True if this tile can be walked over.
+#         ("transparent", np.bool),  # True if this tile doesn't block FOV.
+#         ("dark", graphic_dt),  # Graphics for when this tile is not in FOV.
+#         ("light", graphic_dt)  # When tile is in view
 #     ]
 # )
 #
 #
-# def new_tile(
-#         *,
+# def new_tile_data(
+#         *,  # Enforce the use of keywords, so that parameter order doesn't matter.
 #         walkable: int,
 #         transparent: int,
 #         dark: Tuple[int, Tuple[int, int, int], Tuple[int, int, int]],
-# ) -> numpy.ndarray:
-#     """Helper function for definining tile types"""
-#     return numpy.array((walkable, transparent, dark), dtype=tile_dt)
+#         light: Tuple[int, Tuple[int, int, int], Tuple[int, int, int]],
+# ) -> np.ndarray:
+#     """Helper function for defining individual tile types """
+#     return np.array((walkable, transparent, dark, light), dtype=tile_dt)
 #
 #
-# floor = new_tile(
-#     walkable=True, transparent=True,
-#     dark=(ord(" "), (255, 255, 255), (50, 50, 150))
-# )
+# class TileType:
+#     def __init__(self, char: str, color_fg: Tuple[int, int, int], color_bg: Tuple[int, int, int]):
+#         self.data = new_tile_data(
+#             walkable=False,
+#             transparent=False,
+#             dark=(ord(char), (50, 50, 50), (0, 0, 0)),
+#             light=(ord(char), color_fg, color_bg)
+#         )
 #
-# wall = new_tile(
-#     walkable=False, transparent=False,
-#     dark=(ord(" "), (255, 255, 255), (0, 0, 100))
-# )
-
-class TileType:
-    water = 1
-    wall = 2
-    floor = 3
+#
+# class Floor(TileType):
+#     def __init__(self, char: str, color_fg: Tuple[int, int, int], color_bg: Tuple[int, int, int]):
+#         super().__init__(char, color_fg, color_bg)
+#         self.data = new_tile_data(
+#             walkable=True,
+#             transparent=True,
+#             dark=(ord(char), (50, 50, 50), (0, 0, 0)),
+#             light=(ord(char), color_fg, color_bg)
+#         )
+#
+#
+# class Wall(TileType):
+#     def __init__(self, char: str, color_fg: Tuple[int, int, int], color_bg: Tuple[int, int, int]):
+#         super().__init__(char, color_fg, color_bg)
+#         self.data = new_tile_data(
+#             walkable=False,
+#             transparent=False,
+#             dark=(ord(char), (50, 50, 50), (0, 0, 0)),
+#             light=(ord(char), color_fg, color_bg)
+#         )
 
 
 class Tile:
@@ -59,13 +76,21 @@ class Tile:
                  color_fg: tuple = (255, 255, 255),
                  color_bg: tuple = (0, 0, 0),
                  # properties: tile_dt = (True, True, None)
-                 tile_type: TileType = TileType.floor
                  ):
         self.entity = entity  # Entity contained on this tile
         self.char = char
         self.color_fg = color_fg
         self.color_bg = color_bg
-        self.tile_type = tile_type
-        # self.properties: tile_dt = None
         self.x = x
         self.y = y
+
+
+class TileLayer:
+    def __init__(self, width: int, height: int):
+        self.width = width
+        self.height = height
+        self.data = np.zeros(
+            (self.width, self.height),
+            dtype=Tile,
+            order="F"
+        )

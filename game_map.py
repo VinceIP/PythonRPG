@@ -1,42 +1,62 @@
 from __future__ import annotations
 
-from random import randrange, randint
 from typing import Optional, TYPE_CHECKING, List
 
 import numpy as np
 import pyrexpaint
 
-from tiles import Tile, TileType
+from tiles import Tile, TileLayer
 
 if TYPE_CHECKING:
     from entity import Entity
     from engine import Engine
 
 
+class NoFileNameError(BaseException):
+    pass
+
+
 class Map:
 
-    def __init__(self, engine: Optional[Engine] = None):
+    def __init__(self, engine: Optional[Engine] = None, filename: str = "mockup.xp"):
         self.engine = engine
         self.engine.active_map = self
-
-        self.width = engine.screen_width
-        self.height = engine.screen_height
-
         self.entities: Optional[List[Entity]] = []
         """Contains all entities on a given map"""
+        self.width = 0
+        """Map width in tiles"""
+        self.height = 0
+        """Map height in tiles"""
+        self.tile_layers = None
+        self.map_data = self.init_map_data(filename)
+        self.populate_tile_layers(self.map_data)
 
-        self.create_map_from_xp()
+        """Array of tile layers"""
 
-        def make_test_map():
-            # Generating some random background tiles for testing
-            # No longer works
-            self.tiles: List[List[Tile]] = [
-                [Tile(char=chr(randrange(0x2591, 0x2593)), x=x, y=y,
-                      color_fg=(randint(50, 150), randint(20, 60), 20),
-                      color_bg=(randint(20, 50), randint(10, 15), randint(20, 40)),
-                      ) for y in range(self.height)]
-                for x in range(self.width)
-            ]
+    def init_map_data(self, filename: str) -> list[pyrexpaint.ImageLayer]:
+        """Initialize needed arrays for game_map"""
+        try:
+            if filename == "":
+                raise NoFileNameError
+            map_data = pyrexpaint.load("resources/maps/" + filename)
+            num_layers = len(map_data)
+            self.width = map_data[0].width  # get width and height of base layer
+            self.height = map_data[0].height
+
+            # Init empty tile layers
+            tile_layers = np.zeros(num_layers, dtype=TileLayer, order="F")
+
+            # Populate with tile layer objects
+            for i in range(len(tile_layers)):
+                tile_layers[i] = TileLayer(self.width, self.height)
+
+            self.tile_layers = tile_layers
+            return map_data
+
+        except FileNotFoundError:
+            print("Invalid map file name.")
+        except NoFileNameError:
+            print("No map filename given.")
 
     def is_in_bounds(self, x: int, y: int):
         """Return true if the target coordinates are in bounds of the map"""
@@ -54,35 +74,8 @@ class Map:
         else:
             return False
 
-    def create_map_from_xp(self):
-        path = "resources/maps/"
-        file = "mockup.xp"
-        image_layers = self.load_map_from_xp(path + file)
-        self.tile_layers = np.zeros(len(image_layers), dtype=pyrexpaint.ImageLayer, order="F")
-
-        for layer in image_layers:
-            np.append(image_layers,
-                      self.create_tile_layer_from_xp_layer(layer)
-                      )
-
-    @staticmethod
-    def load_map_from_xp(absolute_path: str):
-        # tcod's load_xp feature only allows one layer??
-        # old:
-        # console, = tcod.console.load_xp(absolute_path, order="F")
-        # CP437_TO_UNICODE = np.asarray(tcod.tileset.CHARMAP_CP437)
-        # console.ch[:] = CP437_TO_UNICODE[console.ch]
-        #
-        # KEY_COLOR = (255, 0, 255)
-        # is_transparent = (console.rgb["bg"] == KEY_COLOR).all(axis=-1)
-        # console.rgba[is_transparent] = (ord(" "), (0,), (0,))
-        # return console
-
-        # new
-        image_layers = pyrexpaint.load(absolute_path)
-        return image_layers
-
-    def create_tile_layer_from_xp_layer(self, image_layer: pyrexpaint.ImageLayer):
+    def populate_tile_layers(self, image_layers: list[pyrexpaint.ImageLayer]):
+        """Fill a map's tile layers with new tiles from raw xp map data"""
         # Return DEC CODE POINT - or a char code
         # print(console.rgb[1, 1][0])
         # get_chr = 0
@@ -111,32 +104,35 @@ class Map:
         #             tile_type=TileType.floor
         #         )
         # return tiles
+        width = self.width
+        height = self.height
+        tile_layers = self.tile_layers
+        # For each layer given in xp map data
+        for layer in range(len(tile_layers)):
 
-        # Init tiles
-        # W/H based on base image layer
-        width = image_layer.width
-        height = image_layer.height
-        tiles = np.zeros((width, height), dtype=Tile, order="F")
+            # Lambda function to split map data layers into x and y
+            pos = lambda x, y: x + y * height
+            for i in range(width):
+                for j in range(height):
+                    # Point to a particular raw tile data
+                    t = image_layers[layer].tiles[pos(j, i)]
 
-        # Lambda function to split layers into x and y
-        pos = lambda x, y: x + y * height
-        for i in range(width):
-            for j in range(height):
-                t = image_layer.tiles[pos(j, i)]
+                    # Get first char from 4 byte string
+                    char = image_layers[layer].tiles[pos(j, i)].ascii_code.decode(encoding="cp437")[0]
 
-                # Get first char from 4 byte string
-                char = image_layer.tiles[pos(j, i)].ascii_code.decode(encoding="cp437")[0]
-                if char == "\x00" or ord(char) == 0:
-                    char = chr(32)
+                    # If this char is a blank/null character, set it to keycode 32 (spacebar)
+                    if char == "\x00" or ord(char) == 0:
+                        char = chr(32)
 
-                color_fg = tuple(
-                    [t.fg_r, t.fg_g, t.fg_b]
-                )
-                color_bg = tuple(
-                    [t.bg_r, t.bg_g, t.bg_b]
-                )
-                tiles[i, j] = Tile(
-                    x=i, y=j, char=char, color_fg=color_fg, color_bg=color_bg,
-                    tile_type=TileType.floor
-                )
-        return tiles
+                    # Get tile properties from xp data
+                    color_fg = tuple(
+                        [t.fg_r, t.fg_g, t.fg_b]
+                    )
+                    color_bg = tuple(
+                        [t.bg_r, t.bg_g, t.bg_b]
+                    )
+                    # Create new tile object
+                    tile_layers[layer].data[i, j] = Tile(
+                        x=i, y=j, char=char, color_fg=color_fg, color_bg=color_bg,
+                    )
+        return tile_layers

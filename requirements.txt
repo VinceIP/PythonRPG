@@ -6,3 +6,5 @@ setuptools==67.6.1
 tcod==15.0.1
 typing-extensions==4.5.0
 git stwheel==0.40.0
+
+pyrexpaint~=0.0.2

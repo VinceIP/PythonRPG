@@ -38,9 +38,10 @@ class MoveAction(Action):
     def perform(self, engine: Engine, entity: Entity) -> None:
         target_x = entity.x + self.dx
         target_y = entity.y + self.dy
+        map = engine.active_map
         # If the target is in index range, set a valid target tile
-        if target_x in range(len(engine.active_map.tiles)) and target_y in range(len(engine.active_map.tiles[0])):
-            target_tile = engine.active_map.tiles[target_x][target_y]
+        if target_x in range(len(map.tile_layers[0].data)) and target_y in range(len(map.tile_layers[0].data)):
+            target_tile = map.tile_layers[0].data[target_x, target_y]
         else:
             # Action will fail to perform, no need to continue
             return
@@ -52,7 +53,7 @@ class MoveAction(Action):
         if engine.active_map.is_in_bounds(target_x, target_y) \
                 and engine.active_map.is_tile_walkable(target_x, target_y):
             # Clear this entity from this tile
-            engine.active_map.tiles[entity.x][entity.y].entity = None
+            map.tile_layers[0].data[entity.x, entity.y].entity = None
             entity.x += self.dx
             entity.y += self.dy
             # Set target entity to new target tile

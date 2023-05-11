@@ -43,20 +43,6 @@ class Engine:
                 self.event_handler.wait_for_event(self)
 
     def render_map(self):
-        # for tile in self.active_map.tiles:
-        #     self.console.print(x=tile.x, y=tile.y,
-        #                        string=tile.char,
-        #                        fg=tile.color_fg,
-        #                        bg=tile.color_bg
-        #                        )
-
-        # for x, row in enumerate(self.active_map.tiles):
-        #     for y, tile in enumerate(row):
-        #         self.console.print(x=x, y=y,
-        #                            string=tile.char,
-        #                            fg=tile.color_fg,
-        #                            bg=tile.color_bg)
-        map = self.active_map
         tile_layers = self.active_map.tile_layers
         # Skip drawing any tile with this background color (transparent)
         transparent_color = (255, 0, 255)

@@ -66,10 +66,9 @@ class Map:
         return True
 
     def is_tile_walkable(self, x: int, y: int):
-        target_tile = self.tiles[x][y]
+        target_tile = self.tile_layers[0].data[x,y]
         """Return true if the target coordinates are walkable"""
-        if target_tile.tile_type == TileType.floor and \
-                target_tile.entity is None or target_tile.entity.solid is False:
+        if target_tile.entity is None or target_tile.entity.solid is False:
             return True
         else:
             return False

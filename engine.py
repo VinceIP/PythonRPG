@@ -1,9 +1,6 @@
 from __future__ import annotations
-
 from typing import Optional
-
 import tcod
-
 from event_handler import EventHandler
 from game_handler import GameHandler
 from game_map import Map
@@ -44,18 +41,23 @@ class Engine:
 
     def render_map(self):
         tile_layers = self.active_map.tile_layers
-        # Skip drawing any tile with this background color (transparent)
         transparent_color = (255, 0, 255)
-        # print(tile_layers[0].data[1, 1].char)
+        # For each tile layer
         for layer in range(len(tile_layers)):
+            # For each x/y coordinate
             for i in range(len(tile_layers[layer].data)):
                 for j in range(len(tile_layers[layer].data)):
+                    # Point to an individual tile
                     tile = tile_layers[layer].data[i, j]
-                    if tile.color_bg != transparent_color:
+                    # Only render tiles that aren't flagged as transparent
+                    # Layer != 3 - do not render tiles on layer 4, which signifies solid tiles
+                    if tile.color_bg != transparent_color\
+                            and layer != 3:
                         self.console.print(
                             x=tile.x, y=tile.y, string=tile.char,
                             fg=tile.color_fg, bg=tile.color_bg
                         )
+        # Render entities
         for entity in self.active_map.entities:
             self.console.print(x=entity.x, y=entity.y,
                                string=entity.char,

@@ -18,5 +18,6 @@ class Entity:
         self.char = char
         self.color = color
         self.solid = solid
-
-        self.map.tile_layers[0].data[self.x, self.y].entity = self
+        self.layer = 1
+        """The map layer this entity lives on"""
+        self.map.tile_layers[self.layer].data[self.x, self.y].entity = self

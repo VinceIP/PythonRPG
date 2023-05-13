@@ -83,6 +83,7 @@ class Tile:
         self.color_bg = color_bg
         self.x = x
         self.y = y
+        self.layer = 0
 
 
 class TileLayer:

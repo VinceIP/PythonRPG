@@ -66,9 +66,11 @@ class Map:
         return True
 
     def is_tile_walkable(self, x: int, y: int):
-        target_tile = self.tile_layers[0].data[x,y]
+        target_tile = self.tile_layers[0].data[x, y]
         """Return true if the target coordinates are walkable"""
-        if target_tile.entity is None or target_tile.entity.solid is False:
+        if (target_tile.entity is None or target_tile.entity.solid is False) \
+                and self.tile_layers[3].data[x, y].color_fg != (255, 0, 0):
+            print(self.tile_layers[3].data[x, y].color_fg)
             return True
         else:
             return False
@@ -134,4 +136,6 @@ class Map:
                     tile_layers[layer].data[i, j] = Tile(
                         x=i, y=j, char=char, color_fg=color_fg, color_bg=color_bg,
                     )
+                    if layer == 3:
+                        tile_layers[layer].data[i, j].layer = 3
         return tile_layers
